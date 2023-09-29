@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+var checked_ = false;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
@@ -61,6 +62,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
+                      width: 50,
+                      child: CheckboxExample(),
+                    ),
+                    Container(
                       width: 100,
                       child: Text(tareas[index]['titulo']),
                     ),
@@ -107,7 +112,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                           .from('tareas')
                                           .update({
                                             'titulo': newTask,
-                                            'descripcion': newDescription
+                                            'descripcion': newDescription,
+                                            'estado': checked_
                                           })
                                           .eq('id', tareas[index]['id'])
                                           .execute();
@@ -184,9 +190,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   addData(String titulo, String descripcion) {
     print(titulo);
-    var response = Supabase.instance.client
-        .from('tareas')
-        .insert({'titulo': titulo, 'descripcion': descripcion}).execute();
+    var response = Supabase.instance.client.from('tareas').insert({
+      'titulo': titulo,
+      'descripcion': descripcion,
+    }).execute();
     print(response);
   }
 
@@ -199,5 +206,42 @@ class _MyHomePageState extends State<MyHomePage> {
     print(response);
     final dataList = response.data as List;
     return dataList;
+  }
+}
+
+class CheckboxExample extends StatefulWidget {
+  const CheckboxExample({super.key});
+
+  @override
+  State<CheckboxExample> createState() => _CheckboxExampleState();
+}
+
+class _CheckboxExampleState extends State<CheckboxExample> {
+  bool isChecked = checked_;
+  @override
+  Widget build(BuildContext context) {
+    Color getColor(Set<MaterialState> states) {
+      const Set<MaterialState> interactiveStates = <MaterialState>{
+        MaterialState.pressed,
+        MaterialState.hovered,
+        MaterialState.focused,
+      };
+      if (states.any(interactiveStates.contains)) {
+        return Colors.blue;
+      }
+      return Colors.red;
+    }
+
+    return Checkbox(
+      checkColor: Colors.white,
+      value: isChecked,
+      onChanged: (value) {
+        setState(() {
+          isChecked = value!;
+          checked_ = isChecked!;
+          print({'checked: ', checked_});
+        });
+      },
+    );
   }
 }
